@@ -28,6 +28,9 @@ const productUSSchema = new mongoose.Schema(
     affiliateUrl: String,
 
     updated_at: Date
+
+    /** NEW — Store full raw SerpAPI product object */
+    raw: mongoose.Schema.Types.Mixed
   },
   { collection: "products_us" }
 );
