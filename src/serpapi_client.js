@@ -13,15 +13,17 @@ export async function searchAmazon(keyword, region = "in") {
     const params = {
       engine: "amazon",
       amazon_domain: domain,
+
+      // FIX: SerpAPI now requires "k" (NOT "q")
       k: keyword,
+
       api_key: API_KEY,
-      gl: region === "us" ? "us" : "in",   // geo location
-      hl: region === "us" ? "en" : "en",   // language
+      gl: region === "us" ? "us" : "in",
+      hl: "en",
     };
 
     const response = await axios.get(url, { params });
 
-    // Return only the relevant product array
     return response.data?.organic_results || [];
 
   } catch (error) {
