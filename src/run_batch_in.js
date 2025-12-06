@@ -17,6 +17,11 @@ for (let word of keywords) {
   const results = await searchAmazon(word, "in");
 
   for (let raw of results) {
+
+    // ✅ TEMP: PRINT ONLY FIRST PRODUCT RAW DATA
+    console.log("RAW PRODUCT:", JSON.stringify(raw, null, 2));
+    process.exit();  // stop after first item
+
     const p = normalizeProduct(raw, "in");
     if (p) {
       console.log("Saving IN:", p.id);
@@ -24,5 +29,6 @@ for (let word of keywords) {
     }
   }
 }
+
 
 console.log("DONE: India batch sync completed");
