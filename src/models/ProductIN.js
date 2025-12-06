@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+iimport mongoose from "mongoose";
 
 const productINSchema = new mongoose.Schema(
   {
@@ -24,13 +24,15 @@ const productINSchema = new mongoose.Schema(
     sponsored: Boolean,
     delivery: [String],
 
-    source: String,
     affiliateUrl: String,
+    source: String,
 
-    updated_at: Date
+    updated_at: Date,
+
+    /** NEW — Store full raw SerpAPI product object */
+    raw: mongoose.Schema.Types.Mixed
   },
   { collection: "products_in" }
 );
 
-export const ProductIN = mongoose.model("ProductIN", productINSchema);
-
+export default mongoose.model("ProductIN", productINSchema);
