@@ -12,7 +12,7 @@ export async function saveProduct(product, region = "in") {
   const Model = region === "us" ? ProductUS : ProductIN;
 
   // ------------------------------
-  // AUTO-CREATE CATEGORY IF MISSING
+  AUTO CREATE CATEGORY IF NEEDED
   // ------------------------------
   await ensureCategoryExists(product.category);
 
@@ -22,8 +22,7 @@ export async function saveProduct(product, region = "in") {
   const existing = await Model.findOne({ id: product.id });
 
   // ------------------------------
-  // IF NO CHANGE → SKIP SAVING
-  // (avoid unnecessary writes)
+  // SKIP SAVING IF NO DATA CHANGED
   // ------------------------------
   if (
     existing &&
@@ -34,12 +33,12 @@ export async function saveProduct(product, region = "in") {
     existing.stock === product.stock &&
     existing.category === product.category
   ) {
-    console.log("Skipping unchanged:", product.id);
+    console.log("⏩ Skipping unchanged:", product.id);
     return;
   }
 
   // ------------------------------
-  // UPSERT PRODUCT
+  // UPSERT PRODUCT (insert or update)
   // ------------------------------
   await Model.updateOne(
     { id: product.id },
@@ -47,11 +46,10 @@ export async function saveProduct(product, region = "in") {
     { upsert: true }
   );
 
-  console.log("Updated:", product.id);
+  console.log("✅ Updated:", product.id);
 
   // ------------------------------
-  // PRICE HISTORY LOGGING
-  // Only insert when price actually changes
+  // PRICE HISTORY (ONLY IF PRICE CHANGED)
   // ------------------------------
   if (!existing || existing.price !== product.price) {
     await mongoose.connection.collection("price_history").insertOne({
@@ -63,6 +61,6 @@ export async function saveProduct(product, region = "in") {
       date: new Date(),
     });
 
-    console.log("Price history added:", product.id);
+    console.log("📈 Price history added:", product.id);
   }
 }
