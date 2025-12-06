@@ -1,3 +1,5 @@
+import { cleanCategory } from "./category_manager.js";
+
 export function normalizeProduct(raw, region = "in") {
   if (!raw || !raw.asin) return null;
 
@@ -6,76 +8,94 @@ export function normalizeProduct(raw, region = "in") {
   // ------------------------------
   let price = 0;
 
-  if (raw.extracted_price) price = raw.extracted_price;
-  else if (raw.price && typeof raw.price === "string")
+  if (raw.extracted_price) {
+    price = raw.extracted_price;
+  } else if (typeof raw.price === "string") {
     price = parseInt(raw.price.replace(/[^0-9]/g, "")) || 0;
-  else if (typeof raw.price === "number") price = raw.price;
+  } else if (typeof raw.price === "number") {
+    price = raw.price;
+  }
 
   // ------------------------------
-  // MRP (COMPARE PRICE)
+  // MRP (Compare Price)
   // ------------------------------
   let mrp = 0;
 
-  if (raw.extracted_old_price) mrp = raw.extracted_old_price;
-  else if (raw.old_price)
+  if (raw.extracted_old_price) {
+    mrp = raw.extracted_old_price;
+  } else if (raw.old_price) {
     mrp = parseInt(raw.old_price.replace(/[^0-9]/g, "")) || 0;
-  else if (raw.original_price_extracted) mrp = raw.original_price_extracted;
-  else if (raw.list_price_extracted) mrp = raw.list_price_extracted;
+  } else if (raw.original_price_extracted) {
+    mrp = raw.original_price_extracted;
+  } else if (raw.list_price_extracted) {
+    mrp = raw.list_price_extracted;
+  }
 
   // ------------------------------
   // RATING & REVIEWS
   // ------------------------------
-  const rating = typeof raw.rating === "number" ? raw.rating : 0;
-  const reviews = typeof raw.reviews === "number" ? raw.reviews : 0;
+  const rating =
+    typeof raw.rating === "number" ? raw.rating : 0;
+
+  const reviews =
+    typeof raw.reviews === "number" || typeof raw.reviews_count === "number"
+      ? raw.reviews || raw.reviews_count
+      : 0;
 
   // ------------------------------
-  // STOCK
+  // STOCK STATUS
   // ------------------------------
-  const stock =
-    raw.availability?.toLowerCase().includes("unavailable")
-      ? "out_of_stock"
-      : "in_stock";
+  let stock = "in_stock";
+
+  if (raw.availability && raw.availability.toLowerCase().includes("unavailable")) {
+    stock = "out_of_stock";
+  }
 
   // ------------------------------
-  // PRIMARY IMAGE
+  // IMAGES
   // ------------------------------
   const primaryImage =
     raw.thumbnail ||
     raw.image ||
-    (raw.images ? raw.images[0] : null) ||
+    (Array.isArray(raw.images) ? raw.images[0] : null) ||
     null;
 
   const images =
-    raw.images?.length > 0
+    Array.isArray(raw.images) && raw.images.length > 0
       ? raw.images.slice(0, 5)
       : primaryImage
       ? [primaryImage]
       : [];
 
   // ------------------------------
-  // CATEGORY
+  // CATEGORY DETECTION (Hybrid Logic)
   // ------------------------------
-  let category = "general";
+  let rawCategory = "general";
 
-  if (raw.category) category = raw.category;
-  else if (raw.category_path?.length > 0)
-    category = raw.category_path[0]?.name || "general";
+  if (raw.category) {
+    rawCategory = raw.category;
+  } else if (raw.category_path?.length > 0) {
+    rawCategory = raw.category_path[0].name || "general";
+  }
+
+  const category = cleanCategory(rawCategory, raw.title);
 
   // ------------------------------
   // AFFILIATE URL
   // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
-
   let affiliateUrl =
     raw.link ||
     raw.link_clean ||
     raw.product_link ||
     `https://amazon.${region === "us" ? "com" : "in"}/dp/${raw.asin}`;
 
-  affiliateUrl += affiliateUrl.includes("?") ? `&tag=${tag}` : `?tag=${tag}`;
+  affiliateUrl += affiliateUrl.includes("?")
+    ? `&tag=${tag}`
+    : `?tag=${tag}`;
 
   // ------------------------------
-  // RETURN FINAL PRODUCT
+  // FINAL STRUCTURED PRODUCT
   // ------------------------------
   return {
     id: raw.asin,
