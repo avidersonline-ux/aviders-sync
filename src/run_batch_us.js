@@ -1,4 +1,4 @@
-iimport dotenv from "dotenv";
+import dotenv from "dotenv";
 dotenv.config();
 
 import fs from "fs";
@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { connectDB } from "./mongo_client.js";
 import { searchAmazon } from "./serpapi_client.js";
 import { normalizeProduct } from "./normalize_product.js";
-import { saveProductUS } from "./save_product.js";   // IMPORTANT: save to products_us
+import { saveProductUS } from "./save_product.js"; // Save into products_us
 
 // Load USA keywords
 const keywords = JSON.parse(
@@ -22,19 +22,21 @@ for (let word of keywords) {
   console.log(`Searching US: ${word}`);
 
   // --------------------------------------------------
-  // RULE 5: Prevent repeated API calls
+  // RULE 5: Prevent repeated API calls (6 hours)
   // --------------------------------------------------
   const lastRun = await searchIndex.findOne({
     keyword: word,
     region: "US",
   });
 
-  if (lastRun && Date.now() - lastRun.last_run < 1000 * 60 * 60 * 6) {
+  const sixHours = 1000 * 60 * 60 * 6;
+
+  if (lastRun && Date.now() - lastRun.last_run < sixHours) {
     console.log(`⏩ SKIPPED (recently indexed): ${word}`);
     continue;
   }
 
-  // Update index timestamp
+  // Update timestamp
   await searchIndex.updateOne(
     { keyword: word, region: "US" },
     { $set: { last_run: Date.now() } },
@@ -52,14 +54,14 @@ for (let word of keywords) {
   }
 
   // --------------------------------------------------
-  // Process each product
+  // Process & Save Products
   // --------------------------------------------------
   for (let raw of results) {
     const p = normalizeProduct(raw, "us");
 
     if (p) {
       console.log("Saving US:", p.id);
-      await saveProductUS(p);
+      await saveProductUS(p); // Saves to products_us
     }
   }
 }
