@@ -4,109 +4,93 @@ export function normalizeProduct(raw, region = "in") {
   // ------------------------------
   // PRICE
   // ------------------------------
-  const price =
-    raw.extracted_price ||
-    (typeof raw.price === "string"
-      ? parseInt(raw.price.replace(/[^0-9]/g, "")) || 0
-      : raw.price || 0);
+  let price = 0;
+
+  if (raw.extracted_price) price = raw.extracted_price;
+  else if (raw.price && typeof raw.price === "string")
+    price = parseInt(raw.price.replace(/[^0-9]/g, "")) || 0;
+  else if (typeof raw.price === "number") price = raw.price;
 
   // ------------------------------
-  // MRP (WORKS FOR YOUR RAW JSON)
+  // MRP (REAL MRP)
   // ------------------------------
-  let mrp =
-    raw.extracted_old_price ||        // BEST SOURCE (your RAW has this)
-    raw.old_price_extracted ||        // alternate name SerpAPI uses
-    (typeof raw.old_price === "string"
-      ? parseInt(raw.old_price.replace(/[^0-9]/g, "")) || 0
-      : 0);
+  let mrp = 0;
+
+  if (raw.extracted_old_price) mrp = raw.extracted_old_price; // BEST FIELD
+  else if (raw.old_price)
+    mrp = parseInt(raw.old_price.replace(/[^0-9]/g, "")) || 0;
+  else if (raw.original_price_extracted) mrp = raw.original_price_extracted;
+  else if (raw.list_price_extracted) mrp = raw.list_price_extracted;
 
   // ------------------------------
-  // REVIEWS (WORKS FOR YOUR RAW JSON)
+  // RATING & REVIEWS
   // ------------------------------
-  const reviews =
-    raw.reviews ||
-    raw.reviews_count ||
-    raw.total_reviews ||
-    0;
+  const rating = typeof raw.rating === "number" ? raw.rating : 0;
+  const reviews = typeof raw.reviews === "number" ? raw.reviews : 0;
 
   // ------------------------------
-  // RATING
+  // STOCK
   // ------------------------------
-  const rating =
-    raw.rating ||
-    raw.stars ||
-    0;
-
-  // ------------------------------
-  // CATEGORY (Smart auto)
-  // ------------------------------
-  let category = "general";
-  const t = raw.title?.toLowerCase() || "";
-
-  if (t.includes("iphone")) category = "Smartphones";
-  else if (t.includes("macbook")) category = "Laptops";
-  else if (t.includes("laptop")) category = "Laptops";
-  else if (t.includes("earbuds")) category = "Earbuds";
-  else if (t.includes("watch")) category = "Watches";
-
-  // ------------------------------
-  // BRAND DETECTION
-  // ------------------------------
-  let brand = raw.brand || "";
-  
-  if (!brand) {
-    if (t.includes("iphone") || t.includes("apple") || t.includes("macbook"))
-      brand = "Apple";
-    else if (t.includes("samsung")) brand = "Samsung";
-    else if (t.includes("redmi") || t.includes("xiaomi")) brand = "Xiaomi";
-    else if (t.includes("boat")) brand = "boAt";
-  }
+  const stock =
+    raw.availability?.toLowerCase().includes("unavailable")
+      ? "out_of_stock"
+      : "in_stock";
 
   // ------------------------------
   // IMAGES
   // ------------------------------
-  const image =
+  const primaryImage =
     raw.thumbnail ||
-    (raw.images ? raw.images[0] : null) ||
     raw.image ||
+    (raw.images ? raw.images[0] : null) ||
     null;
 
-  const images = raw.images?.slice(0, 5) || (image ? [image] : []);
+  const images = raw.images?.slice(0, 5) || (primaryImage ? [primaryImage] : []);
 
   // ------------------------------
-  // STOCK STATUS
+  // CATEGORY
   // ------------------------------
-  const stock = "in_stock";
+  let category = "general";
+
+  if (raw.category) category = raw.category;
+  else if (raw.category_path?.length > 0)
+    category = raw.category_path[0]?.name || "general";
 
   // ------------------------------
-  // AFFILIATE LINK
+  // AFFILIATE URL
   // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
 
-  let affiliateUrl = raw.link || raw.product_link || "";
-  if (!affiliateUrl)
-    affiliateUrl = `https://amazon.${region === "us" ? "com" : "in"}/dp/${raw.asin}`;
+  let affiliateUrl =
+    raw.link ||
+    raw.link_clean ||
+    raw.product_link ||
+    `https://amazon.${region === "us" ? "com" : "in"}/dp/${raw.asin}`;
 
   affiliateUrl += affiliateUrl.includes("?") ? `&tag=${tag}` : `?tag=${tag}`;
 
   // ------------------------------
-  // FINAL PRODUCT OBJECT
+  // RETURN FINAL PRODUCT STRUCTURE
   // ------------------------------
   return {
     id: raw.asin,
     title: raw.title || "",
-    brand,
+    brand: raw.brand || "",
     price,
     mrp,
     currency: region === "us" ? "USD" : "INR",
 
     category,
+    stock,
     rating,
     reviews,
-    stock,
 
-    image,
+    image: primaryImage,
     images,
+
+    bought_last_month: raw.bought_last_month || null,
+    sponsored: raw.sponsored || false,
+    delivery: raw.delivery || [],
 
     source: region === "us" ? "amazon_us" : "amazon_in",
     affiliateUrl,
