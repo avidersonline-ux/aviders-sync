@@ -96,5 +96,8 @@ export function normalizeProduct(raw, region = "in") {
     affiliateUrl,
 
     updated_at: new Date()
+
+    /** STORE EVERYTHING */
+  raw
   };
 }
