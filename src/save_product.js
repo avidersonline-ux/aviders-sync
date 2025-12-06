@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import ProductIN from "./models/ProductIN.js";
+import { ProductIN } from "./models/ProductIN.js";
 import ProductUS from "./models/ProductUS.js";
 
 export async function saveProduct(product) {
