@@ -32,4 +32,5 @@ const productINSchema = new mongoose.Schema(
   { collection: "products_in" }
 );
 
-export const ProductIN = mongoose.model("ProductIN", productINSchema);
+const ProductIN = mongoose.model("ProductIN", productINSchema);
+export default ProductIN;
