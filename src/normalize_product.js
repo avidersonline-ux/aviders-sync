@@ -2,7 +2,7 @@ export function normalizeProduct(raw, region = "in") {
   if (!raw || !raw.asin) return null;
 
   // ------------------------------
-  // PRICE & MRP
+  // PRICE
   // ------------------------------
   const price =
     raw.extracted_price ||
@@ -10,6 +10,9 @@ export function normalizeProduct(raw, region = "in") {
       ? parseInt(raw.price.replace(/[^0-9]/g, "")) || 0
       : raw.price || 0);
 
+  // ------------------------------
+  // MRP (Correct for your JSON)
+  // ------------------------------
   const mrp =
     raw.extracted_old_price ||
     (typeof raw.old_price === "string"
@@ -29,14 +32,31 @@ export function normalizeProduct(raw, region = "in") {
   else if (t.includes("watch")) category = "Watches";
 
   // ------------------------------
-  // BRAND (Smart Guess)
+  // BRAND DETECTION
   // ------------------------------
-  let brand = "";
-  if (t.includes("iphone") || t.includes("apple") || t.includes("macbook"))
-    brand = "Apple";
-  else if (t.includes("samsung")) brand = "Samsung";
-  else if (t.includes("redmi") || t.includes("xiaomi")) brand = "Xiaomi";
-  else if (t.includes("boat")) brand = "boAt";
+  let brand = raw.brand || "";
+
+  if (!brand) {
+    if (t.includes("iphone") || t.includes("apple") || t.includes("macbook"))
+      brand = "Apple";
+    else if (t.includes("samsung")) brand = "Samsung";
+    else if (t.includes("redmi") || t.includes("xiaomi")) brand = "Xiaomi";
+    else if (t.includes("boat")) brand = "boAt";
+  }
+
+  // ------------------------------
+  // RATING + REVIEWS (all possible keys)
+  // ------------------------------
+  const rating =
+    raw.rating ||
+    raw.stars ||
+    0;
+
+  const reviews =
+    raw.reviews ||
+    raw.reviews_count ||
+    raw.total_reviews ||
+    0;
 
   // ------------------------------
   // IMAGES
@@ -50,9 +70,19 @@ export function normalizeProduct(raw, region = "in") {
   const images = raw.images?.slice(0, 5) || (image ? [image] : []);
 
   // ------------------------------
-  // STOCK (search results rarely show unavailable)
+  // STOCK
   // ------------------------------
-  const stock = "in_stock";
+  const stock = "in_stock"; // Search results rarely show unavailable
+
+  // ------------------------------
+  // VARIANTS
+  // ------------------------------
+  const variants = raw.variants || {};
+
+  // ------------------------------
+  // DELIVERY INFO
+  // ------------------------------
+  const delivery = raw.delivery || [];
 
   // ------------------------------
   // AFFILIATE URL
@@ -62,6 +92,7 @@ export function normalizeProduct(raw, region = "in") {
   let affiliateUrl = raw.link || raw.product_link || "";
   if (!affiliateUrl)
     affiliateUrl = `https://amazon.${region === "us" ? "com" : "in"}/dp/${raw.asin}`;
+
   affiliateUrl += affiliateUrl.includes("?") ? `&tag=${tag}` : `?tag=${tag}`;
 
   // ------------------------------
@@ -71,23 +102,21 @@ export function normalizeProduct(raw, region = "in") {
     id: raw.asin,
     title: raw.title || "",
     brand,
-
     price,
     mrp,
     currency: region === "us" ? "USD" : "INR",
-    category,
 
-    rating: raw.rating || 0,
-    reviews: raw.reviews || 0,
+    category,
+    rating,
+    reviews,
     bought_last_month: raw.bought_last_month || "",
+    stock,
 
     image,
     images,
-    variants: raw.variants || {},
+    variants,
+    delivery,
 
-    delivery: raw.delivery || [],
-
-    stock,
     source: region === "us" ? "amazon_us" : "amazon_in",
     affiliateUrl,
 
