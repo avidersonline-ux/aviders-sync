@@ -2,54 +2,59 @@ export function normalizeProduct(raw, region = "in") {
   if (!raw || !raw.asin) return null;
 
   // ------------------------------
-  // PRICE EXTRACTION
+  // PRICE
   // ------------------------------
   let price = 0;
 
-  // extracted price (best value)
   if (raw.extracted_price) price = raw.extracted_price;
-
-  // price string → convert
-  else if (raw.price && typeof raw.price === "string") {
+  else if (raw.price && typeof raw.price === "string")
     price = parseInt(raw.price.replace(/[^0-9]/g, "")) || 0;
-  }
-
-  // fallback numeric price
-  else if (typeof raw.price === "number") {
-    price = raw.price;
-  }
+  else if (typeof raw.price === "number") price = raw.price;
 
   // ------------------------------
-  // MRP EXTRACTION (ORIGINAL PRICE)
+  // MRP (MULTIPLE SOURCES)
   // ------------------------------
   let mrp = 0;
 
-  // SerpAPI mostly returns original_price_extracted
   if (raw.original_price_extracted) mrp = raw.original_price_extracted;
-
-  // Sometimes list_price_extracted exists
   else if (raw.list_price_extracted) mrp = raw.list_price_extracted;
-
-  // If string format exists
-  else if (raw.original_price && typeof raw.original_price === "string") {
+  else if (raw.original_price)
     mrp = parseInt(raw.original_price.replace(/[^0-9]/g, "")) || 0;
-  }
-
-  // fallback
-  else if (raw.list_price && typeof raw.list_price === "string") {
+  else if (raw.list_price)
     mrp = parseInt(raw.list_price.replace(/[^0-9]/g, "")) || 0;
+
+  // ------ NEW IMPORTANT MRP SOURCES -------
+  if (mrp === 0 && raw.product_details) {
+    const pd = raw.product_details;
+
+    let possible = [
+      pd["M.R.P."],
+      pd["M.R.P"],
+      pd["List Price"],
+      pd["Maximum Retail Price"],
+      pd["MRP"]
+    ];
+
+    for (let v of possible) {
+      if (typeof v === "string") {
+        const num = parseInt(v.replace(/[^0-9]/g, ""));
+        if (num > 0) {
+          mrp = num;
+          break;
+        }
+      }
+    }
   }
 
   // ------------------------------
-  // AFFILIATE TAG
+  // AFFILIATE LINK
   // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
 
   let affiliateUrl = raw.link || raw.product_link || "";
-
   if (affiliateUrl.includes("?"))
     affiliateUrl += `&tag=${tag}`;
-  else
+  else 
     affiliateUrl += `?tag=${tag}`;
 
   // ------------------------------
@@ -65,13 +70,13 @@ export function normalizeProduct(raw, region = "in") {
     id: raw.asin,
     title: raw.title || "",
     brand: raw.brand || "",
-    price: price,
-    mrp: mrp,
-    image: image,
+    price,
+    mrp,
+    image,
     currency: region === "us" ? "USD" : "INR",
     category: "general",
     source: region === "us" ? "amazon_us" : "amazon_in",
-    affiliateUrl: affiliateUrl,
+    affiliateUrl,
     updated_at: new Date()
   };
 }
