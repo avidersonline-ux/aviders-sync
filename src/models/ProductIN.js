@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema(
+const productINSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, index: true },
+    id: { type: String, required: true, index: true, unique: true },
+
     title: String,
     brand: String,
 
@@ -28,16 +29,8 @@ const productSchema = new mongoose.Schema(
 
     updated_at: Date
   },
-  { timestamps: false }
+  { collection: "products_in" }
 );
 
-// ⭐ DYNAMIC COLLECTION NAME ⭐
-// India → products_in
-// US → products_us
-export function getProductModel(region) {
-  const collection = region === "us" ? "products_us" : "products_in";
-  return (
-    mongoose.models[collection] ||
-    mongoose.model(collection, productSchema, collection)
-  );
-}
+export const ProductIN = mongoose.model("ProductIN", productINSchema);
+
