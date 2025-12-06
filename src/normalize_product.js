@@ -1,7 +1,18 @@
 import { cleanCategory } from "./category_manager.js";
 
-export function normalizeProduct(raw, region = "in") {
-  if (!raw || !raw.asin) return null;
+export function cleanCategory(name = "", title = "") {
+  if (!name) name = "general";
+
+  let c = name.toLowerCase().trim();
+
+  if (title.toLowerCase().includes("iphone")) c = "smartphones";
+  if (title.toLowerCase().includes("macbook")) c = "laptops";
+  if (title.toLowerCase().includes("watch")) c = "watches";
+  if (title.toLowerCase().includes("earbud") || title.toLowerCase().includes("buds"))
+    c = "earbuds";
+
+  return c;
+}
 
   // ------------------------------
   // PRICE
