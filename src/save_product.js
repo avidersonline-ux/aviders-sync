@@ -6,24 +6,24 @@ import ProductUS from "./models/ProductUS.js";
 import { ensureCategoryExists } from "./category_manager.js";
 
 export async function saveProduct(product, region = "in") {
-  // ------------------------------
+  // ------------------------------------------
   // SELECT MODEL BASED ON REGION
-  // ------------------------------
+  // ------------------------------------------
   const Model = region === "us" ? ProductUS : ProductIN;
 
-  // ------------------------------
-  AUTO CREATE CATEGORY IF NEEDED
-  // ------------------------------
+  // ------------------------------------------
+  // AUTO CREATE CATEGORY IF NEEDED
+  // ------------------------------------------
   await ensureCategoryExists(product.category);
 
-  // ------------------------------
+  // ------------------------------------------
   // CHECK EXISTING PRODUCT
-  // ------------------------------
+  // ------------------------------------------
   const existing = await Model.findOne({ id: product.id });
 
-  // ------------------------------
-  // SKIP SAVING IF NO DATA CHANGED
-  // ------------------------------
+  // ------------------------------------------
+  // SKIP IF NO CHANGE
+  // ------------------------------------------
   if (
     existing &&
     existing.price === product.price &&
@@ -37,9 +37,9 @@ export async function saveProduct(product, region = "in") {
     return;
   }
 
-  // ------------------------------
-  // UPSERT PRODUCT (insert or update)
-  // ------------------------------
+  // ------------------------------------------
+  // UPSERT PRODUCT
+  // ------------------------------------------
   await Model.updateOne(
     { id: product.id },
     { $set: product },
@@ -48,9 +48,9 @@ export async function saveProduct(product, region = "in") {
 
   console.log("✅ Updated:", product.id);
 
-  // ------------------------------
-  // PRICE HISTORY (ONLY IF PRICE CHANGED)
-  // ------------------------------
+  // ------------------------------------------
+  // PRICE HISTORY (ONLY WHEN PRICE CHANGES)
+  // ------------------------------------------
   if (!existing || existing.price !== product.price) {
     await mongoose.connection.collection("price_history").insertOne({
       asin: product.id,
