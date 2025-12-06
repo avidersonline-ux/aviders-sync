@@ -12,51 +12,75 @@ export function normalizeProduct(raw, region = "in") {
   else if (typeof raw.price === "number") price = raw.price;
 
   // ------------------------------
-  // MRP (MULTIPLE SOURCES)
+  // MRP (FULL EXPANDED SOURCES)
   // ------------------------------
   let mrp = 0;
 
-  if (raw.original_price_extracted) mrp = raw.original_price_extracted;
-  else if (raw.list_price_extracted) mrp = raw.list_price_extracted;
-  else if (raw.original_price)
-    mrp = parseInt(raw.original_price.replace(/[^0-9]/g, "")) || 0;
-  else if (raw.list_price)
-    mrp = parseInt(raw.list_price.replace(/[^0-9]/g, "")) || 0;
+  const mrpCandidates = [
+    raw.original_price_extracted,
+    raw.list_price_extracted,
+    raw.mrp,
+    raw.original_price,
+    raw.list_price,
+    raw.price_strikethrough,
+    raw.product_details?.["M.R.P."],
+    raw.product_details?.["M.R.P"],
+    raw.product_details?.["Maximum Retail Price"],
+    raw.product_details?.["List Price"],
+    raw.product_details?.MRP
+  ];
 
-  // Additional MRP sources
-  if (mrp === 0 && raw.product_details) {
-    const pd = raw.product_details;
-    let possible = [
-      pd["M.R.P."],
-      pd["M.R.P"],
-      pd["List Price"],
-      pd["Maximum Retail Price"],
-      pd["MRP"]
-    ];
-    for (let v of possible) {
-      if (typeof v === "string") {
-        const num = parseInt(v.replace(/[^0-9]/g, ""));
-        if (num > 0) {
-          mrp = num;
-          break;
-        }
+  for (let m of mrpCandidates) {
+    if (!m) continue;
+    if (typeof m === "number" && m > 0) {
+      mrp = m;
+      break;
+    }
+    if (typeof m === "string") {
+      const num = parseInt(m.replace(/[^0-9]/g, ""));
+      if (num > 0) {
+        mrp = num;
+        break;
       }
     }
   }
 
   // ------------------------------
-  // CATEGORY AUTO DETECTION
+  // CATEGORY (FULL SMART DETECTION)
   // ------------------------------
   let category = "general";
 
-  if (raw.category) category = raw.category;
-  else if (raw.category_path && raw.category_path.length > 0)
-    category = raw.category_path[0].name || "general";
-  else if (raw.product_details && raw.product_details["Best Sellers Rank"]) {
+  const possibleCategories = [
+    raw.category,
+    raw.product_sub_category,
+    raw.subcategory,
+    raw.category_name,
+    raw.breadcrumb_category,
+  ];
+
+  for (let c of possibleCategories) {
+    if (typeof c === "string" && c.length > 2) {
+      category = c;
+      break;
+    }
+  }
+
+  // From category_path[]
+  if (category === "general") {
+    if (Array.isArray(raw.category_path) && raw.category_path.length > 0) {
+      const cp = raw.category_path.find(x => x.name);
+      if (cp?.name) category = cp.name;
+    }
+  }
+
+  // From Best Sellers Rank text
+  if (category === "general" && raw.product_details?.["Best Sellers Rank"]) {
     const bsr = raw.product_details["Best Sellers Rank"];
     const match = bsr.match(/in (.*?)\)/i);
     if (match) category = match[1];
   }
+
+  if (category.length > 40) category = "general";
 
   // ------------------------------
   // RATING + REVIEWS
