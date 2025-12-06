@@ -6,24 +6,16 @@ import ProductUS from "./models/ProductUS.js";
 import { ensureCategoryExists } from "./category_manager.js";
 
 export async function saveProduct(product, region = "in") {
-  // ------------------------------------------
-  // SELECT MODEL BASED ON REGION
-  // ------------------------------------------
+  // Select correct model
   const Model = region === "us" ? ProductUS : ProductIN;
 
-  // ------------------------------------------
-  // AUTO CREATE CATEGORY IF NEEDED
-  // ------------------------------------------
+  // Ensure category exists
   await ensureCategoryExists(product.category);
 
-  // ------------------------------------------
-  // CHECK EXISTING PRODUCT
-  // ------------------------------------------
+  // Check existing
   const existing = await Model.findOne({ id: product.id });
 
-  // ------------------------------------------
-  // SKIP IF NO CHANGE
-  // ------------------------------------------
+  // Skip unchanged
   if (
     existing &&
     existing.price === product.price &&
@@ -37,9 +29,7 @@ export async function saveProduct(product, region = "in") {
     return;
   }
 
-  // ------------------------------------------
-  // UPSERT PRODUCT
-  // ------------------------------------------
+  // Upsert (insert or update)
   await Model.updateOne(
     { id: product.id },
     { $set: product },
@@ -48,16 +38,14 @@ export async function saveProduct(product, region = "in") {
 
   console.log("✅ Updated:", product.id);
 
-  // ------------------------------------------
-  // PRICE HISTORY (ONLY WHEN PRICE CHANGES)
-  // ------------------------------------------
+  // Price history logging
   if (!existing || existing.price !== product.price) {
     await mongoose.connection.collection("price_history").insertOne({
       asin: product.id,
       price: product.price,
       mrp: product.mrp,
-      source: product.source,
       region,
+      source: product.source,
       date: new Date(),
     });
 
