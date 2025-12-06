@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { connectDB } from "./mongo_client.js";
 import { searchAmazon } from "./serpapi_client.js";
 import { normalizeProduct } from "./normalize_product.js";
-import { saveProductIN } from "./save_product.js";   // IMPORTANT: save to products_in
+import { saveProductIN } from "./save_product.js"; // Save into products_in
 
 // Load India keywords
 const keywords = JSON.parse(
@@ -22,19 +22,21 @@ for (let word of keywords) {
   console.log(`Searching IN: ${word}`);
 
   // --------------------------------------------------
-  // RULE 5: Prevent repeated API calls
+  // RULE 5: Prevent repeated API calls (6 hours)
   // --------------------------------------------------
   const lastRun = await searchIndex.findOne({
     keyword: word,
     region: "IN",
   });
 
-  if (lastRun && Date.now() - lastRun.last_run < 1000 * 60 * 60 * 6) {
+  const sixHours = 1000 * 60 * 60 * 6;
+
+  if (lastRun && Date.now() - lastRun.last_run < sixHours) {
     console.log(`⏩ SKIPPED (recently indexed): ${word}`);
     continue;
   }
 
-  // Update index timestamp
+  // Update timestamp
   await searchIndex.updateOne(
     { keyword: word, region: "IN" },
     { $set: { last_run: Date.now() } },
@@ -52,14 +54,14 @@ for (let word of keywords) {
   }
 
   // --------------------------------------------------
-  // Process each product
+  // Process & Save Products
   // --------------------------------------------------
   for (let raw of results) {
     const p = normalizeProduct(raw, "in");
 
     if (p) {
       console.log("Saving IN:", p.id);
-      await saveProductIN(p);
+      await saveProductIN(p); // Saves to products_in
     }
   }
 }
