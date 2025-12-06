@@ -1,0 +1,14 @@
+{
+  "name": "aviders-sync",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "run:in": "node src/run_batch_in.js",
+    "run:us": "node src/run_batch_us.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.5",
+    "mongoose": "^7.6.1"
+  }
+}
