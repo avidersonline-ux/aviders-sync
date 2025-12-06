@@ -1,60 +1,24 @@
+// src/category_manager.js
+
 import mongoose from "mongoose";
-import Category from "./models/Category.js";
 
-// ----------------------
-// Normalize category names
-// ----------------------
-export function cleanCategory(rawCategory, title = "") {
-  if (!rawCategory) rawCategory = "";
+const Categories = mongoose.connection.collection("categories");
 
-  rawCategory = rawCategory.toLowerCase().trim();
+/**
+ * Ensures category exists in MongoDB
+ * If not, inserts automatically
+ */
+export async function ensureCategoryExists(name) {
+  if (!name || typeof name !== "string") return;
 
-  // 1) SERPAPI category cleaning
-  if (rawCategory.includes("phone")) return "smartphones";
-  if (rawCategory.includes("mobile")) return "smartphones";
-  if (rawCategory.includes("smartphone")) return "smartphones";
+  const existing = await Categories.findOne({ name: name.toLowerCase() });
 
-  if (rawCategory.includes("laptop")) return "laptops";
-  if (rawCategory.includes("macbook")) return "laptops";
+  if (!existing) {
+    await Categories.insertOne({
+      name: name.toLowerCase(),
+      created_at: new Date(),
+    });
 
-  if (rawCategory.includes("earbud")) return "earbuds";
-  if (rawCategory.includes("earphone")) return "earbuds";
-  if (rawCategory.includes("headphone")) return "audio";
-
-  if (rawCategory.includes("watch")) return "watches";
-  if (rawCategory.includes("smartwatch")) return "watches";
-
-  // 2) Keyword-based fallback using product title
-  let t = title.toLowerCase();
-
-  if (t.includes("iphone") || t.includes("mobile")) return "smartphones";
-  if (t.includes("macbook") || t.includes("notebook")) return "laptops";
-  if (t.includes("earbuds") || t.includes("airpods")) return "earbuds";
-  if (t.includes("watch")) return "watches";
-
-  // 3) Default fallback
-  return "general";
-}
-
-// ----------------------
-// Create category if missing
-// ----------------------
-export async function ensureCategoryExists(categoryName) {
-  if (!categoryName) return;
-
-  const slug = categoryName.toLowerCase().replace(/\s+/g, "_");
-
-  const existing = await Category.findOne({ slug });
-
-  if (existing) return existing;
-
-  const newCat = new Category({
-    name: categoryName,
-    slug,
-    created_at: new Date(),
-    updated_at: new Date()
-  });
-
-  await newCat.save();
-  return newCat;
+    console.log("📂 Category created:", name);
+  }
 }
