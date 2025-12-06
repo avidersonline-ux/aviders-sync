@@ -1,25 +1,35 @@
 import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  region: { type: String, required: true },   // 🔥 NEW
-  title: String,
-  brand: String,
-  price: Number,
-  mrp: Number,
-  currency: String,
-  category: String,
-  rating: Number,
-  reviews: Number,
-  stock: String,
-  image: String,
-  images: [String],
-  affiliateUrl: String,
-  source: String,
-  updated_at: Date
-});
+const productSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true, index: true, unique: true },
 
-// Compound index → prevents overwriting
-ProductSchema.index({ id: 1, region: 1 }, { unique: true });
+    title: String,
+    brand: String,
 
-export default mongoose.model("Product", ProductSchema);
+    price: Number,
+    mrp: Number,
+    currency: String,
+
+    category: String,
+    stock: String,
+
+    rating: Number,
+    reviews: Number,
+
+    image: String,
+    images: [String],
+
+    bought_last_month: String,
+    sponsored: Boolean,
+    delivery: [String],
+
+    source: String,
+    affiliateUrl: String,
+
+    updated_at: Date
+  },
+  { collection: "products" }   // keep same collection
+);
+
+export const Product = mongoose.model("Product", productSchema);
