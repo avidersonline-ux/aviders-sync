@@ -1,10 +1,30 @@
 import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const searchAmazon = async (keyword, country) => {
-  const url = `https://serpapi.com/search.json?engine=amazon&amazon_domain=${
-    country === "in" ? "amazon.in" : "amazon.com"
-  }&q=${keyword}&api_key=${process.env.SERPAPI_KEY}`;
+const API_KEY = process.env.SERPAPI_KEY;
 
-  const res = await axios.get(url);
-  return res.data.organics || res.data.organic_results || [];
-};
+export async function searchAmazon(keyword, region = "in") {
+  try {
+    const domain =
+      region === "us" ? "amazon.com" : "amazon.in";
+
+    const url = "https://serpapi.com/search.json";
+
+    const params = {
+      engine: "amazon",
+      amazon_domain: domain,
+      q: keyword,
+      api_key: API_KEY,
+    };
+
+    const response = await axios.get(url, { params });
+
+    // Only return useful product objects
+    return response.data?.organic_results || [];
+
+  } catch (error) {
+    console.error("SerpAPI error:", error.message);
+    return [];
+  }
+}
