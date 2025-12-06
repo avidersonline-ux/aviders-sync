@@ -20,7 +20,7 @@ for (let word of keywords) {
     const p = normalizeProduct(raw, "us");
     if (p) {
       console.log("Saving:", p.id);
-      await saveProduct(p);
+      await saveProduct(p, "us");   // 👈 IMPORTANT: pass region
     }
   }
 }
