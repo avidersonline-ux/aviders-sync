@@ -19,8 +19,10 @@ for (let word of keywords) {
   for (let raw of results) {
     const p = normalizeProduct(raw, "us");
     if (p) {
-      console.log("Saving:", p.id);
-      await saveProduct(p, "us");   // 👈 IMPORTANT: pass region
+      console.log("Saving US:", p.id);
+      await saveProduct(p);
     }
   }
 }
+
+console.log("DONE: US batch sync completed");
