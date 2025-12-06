@@ -1,12 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import fs from "fs";
 import { connectDB } from "./mongo_client.js";
 import { searchAmazon } from "./serpapi_client.js";
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
-import keywords from "./keywords_us.json" assert { type: "json" };
+const keywords = JSON.parse(fs.readFileSync("./src/keywords_us.json", "utf-8"));
 
 await connectDB();
 
@@ -23,4 +24,3 @@ for (let word of keywords) {
     }
   }
 }
-
