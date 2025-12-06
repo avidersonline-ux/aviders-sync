@@ -1,11 +1,14 @@
-import { getProductModel } from "./models/product_model.js";
+import { ProductIN } from "./models/ProductIN.js";
+import { ProductUS } from "./models/ProductUS.js";
 
-export async function saveProduct(product, region) {
-  const Product = getProductModel(region);
+export async function saveProduct(p) {
+  const Model = p.currency === "INR" ? ProductIN : ProductUS;
 
-  await Product.updateOne(
-    { id: product.id },
-    { $set: product },
+  await Model.updateOne(
+    { id: p.id },
+    { $set: p },
     { upsert: true }
   );
+
+  return true;
 }
