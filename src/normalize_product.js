@@ -1,18 +1,27 @@
-import { cleanCategory } from "./category_manager.js";
-
-export function cleanCategory(name = "", title = "") {
+// ------------------------------
+// Category Cleaner (local function)
+// ------------------------------
+function cleanCategory(name = "", title = "") {
   if (!name) name = "general";
 
   let c = name.toLowerCase().trim();
 
-  if (title.toLowerCase().includes("iphone")) c = "smartphones";
-  if (title.toLowerCase().includes("macbook")) c = "laptops";
-  if (title.toLowerCase().includes("watch")) c = "watches";
-  if (title.toLowerCase().includes("earbud") || title.toLowerCase().includes("buds"))
-    c = "earbuds";
+  // Basic keyword rules
+  const t = title?.toLowerCase() || "";
+
+  if (t.includes("iphone")) c = "smartphones";
+  if (t.includes("macbook")) c = "laptops";
+  if (t.includes("watch")) c = "watches";
+  if (t.includes("earbud") || t.includes("buds")) c = "earbuds";
 
   return c;
 }
+
+// ------------------------------
+// MAIN NORMALIZER
+// ------------------------------
+export function normalizeProduct(raw, region = "in") {
+  if (!raw || !raw.asin) return null;
 
   // ------------------------------
   // PRICE
@@ -28,7 +37,7 @@ export function cleanCategory(name = "", title = "") {
   }
 
   // ------------------------------
-  // MRP (Compare Price)
+  // MRP
   // ------------------------------
   let mrp = 0;
 
@@ -45,20 +54,22 @@ export function cleanCategory(name = "", title = "") {
   // ------------------------------
   // RATING & REVIEWS
   // ------------------------------
-  const rating =
-    typeof raw.rating === "number" ? raw.rating : 0;
+  const rating = typeof raw.rating === "number" ? raw.rating : 0;
 
   const reviews =
-    typeof raw.reviews === "number" || typeof raw.reviews_count === "number"
+    typeof raw.reviews === "number" ||
+    typeof raw.reviews_count === "number"
       ? raw.reviews || raw.reviews_count
       : 0;
 
   // ------------------------------
-  // STOCK STATUS
+  // STOCK
   // ------------------------------
   let stock = "in_stock";
-
-  if (raw.availability && raw.availability.toLowerCase().includes("unavailable")) {
+  if (
+    raw.availability &&
+    raw.availability.toLowerCase().includes("unavailable")
+  ) {
     stock = "out_of_stock";
   }
 
@@ -79,7 +90,7 @@ export function cleanCategory(name = "", title = "") {
       : [];
 
   // ------------------------------
-  // CATEGORY DETECTION (Hybrid Logic)
+  // CATEGORY DETECTION
   // ------------------------------
   let rawCategory = "general";
 
@@ -95,6 +106,7 @@ export function cleanCategory(name = "", title = "") {
   // AFFILIATE URL
   // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
+
   let affiliateUrl =
     raw.link ||
     raw.link_clean ||
