@@ -1,34 +1,60 @@
 export function normalizeProduct(raw, region = "in") {
   if (!raw || !raw.asin) return null;
 
-  // --- PRICE EXTRACTION ---
+  // ------------------------------
+  // PRICE EXTRACTION
+  // ------------------------------
   let price = 0;
 
+  // extracted price (best value)
   if (raw.extracted_price) price = raw.extracted_price;
-  else if (raw.price && typeof raw.price === "number") price = raw.price;
+
+  // price string → convert
   else if (raw.price && typeof raw.price === "string") {
     price = parseInt(raw.price.replace(/[^0-9]/g, "")) || 0;
   }
 
-  // --- MRP EXTRACTION ---
-  let mrp = 0;
-
-  if (raw.extracted_mrp) mrp = raw.extracted_mrp;
-  else if (raw.mrp && typeof raw.mrp === "string") {
-    mrp = parseInt(raw.mrp.replace(/[^0-9]/g, "")) || 0;
+  // fallback numeric price
+  else if (typeof raw.price === "number") {
+    price = raw.price;
   }
 
-  // --- AFFILIATE TAG ---
+  // ------------------------------
+  // MRP EXTRACTION (ORIGINAL PRICE)
+  // ------------------------------
+  let mrp = 0;
+
+  // SerpAPI mostly returns original_price_extracted
+  if (raw.original_price_extracted) mrp = raw.original_price_extracted;
+
+  // Sometimes list_price_extracted exists
+  else if (raw.list_price_extracted) mrp = raw.list_price_extracted;
+
+  // If string format exists
+  else if (raw.original_price && typeof raw.original_price === "string") {
+    mrp = parseInt(raw.original_price.replace(/[^0-9]/g, "")) || 0;
+  }
+
+  // fallback
+  else if (raw.list_price && typeof raw.list_price === "string") {
+    mrp = parseInt(raw.list_price.replace(/[^0-9]/g, "")) || 0;
+  }
+
+  // ------------------------------
+  // AFFILIATE TAG
+  // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
 
   let affiliateUrl = raw.link || raw.product_link || "";
-  if (affiliateUrl.includes("?")) {
-    affiliateUrl += `&tag=${tag}`;
-  } else {
-    affiliateUrl += `?tag=${tag}`;
-  }
 
-  // --- IMAGE FIELD ---
+  if (affiliateUrl.includes("?"))
+    affiliateUrl += `&tag=${tag}`;
+  else
+    affiliateUrl += `?tag=${tag}`;
+
+  // ------------------------------
+  // IMAGE
+  // ------------------------------
   const image =
     raw.thumbnail ||
     raw.image ||
