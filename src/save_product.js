@@ -1,9 +1,9 @@
-import Product from "./product_model.js";
+import Product from "./models/Product.js";
 
-export const saveProduct = async (product) => {
-  await Product.updateOne(
-    { id: product.id },
-    { $set: product },
-    { upsert: true }
+export async function saveProduct(product) {
+  await Product.findOneAndUpdate(
+    { id: product.id, region: product.region },   // 🔥 Important fix
+    product,
+    { upsert: true, new: true }
   );
-};
+}
