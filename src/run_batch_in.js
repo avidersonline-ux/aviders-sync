@@ -1,12 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import fs from "fs";
 import { connectDB } from "./mongo_client.js";
 import { searchAmazon } from "./serpapi_client.js";
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
-import keywords from "./keywords_in.json" assert { type: "json" };
+const keywords = JSON.parse(fs.readFileSync("./src/keywords_in.json", "utf-8"));
 
 await connectDB();
 
