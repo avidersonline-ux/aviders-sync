@@ -13,7 +13,7 @@ export async function searchAmazon(keyword, region = "in") {
     const params = {
       engine: "amazon",
       amazon_domain: domain,
-      q: keyword,
+      k: keyword,
       api_key: API_KEY,
       gl: region === "us" ? "us" : "in",   // geo location
       hl: region === "us" ? "en" : "en",   // language
