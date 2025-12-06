@@ -17,10 +17,19 @@ for (let word of keywords) {
   const results = await searchAmazon(word, "in");
 
   for (let raw of results) {
+
+    // ⭐⭐ ADD THIS DEBUG PRINT ⭐⭐
+    console.log("RAW PRODUCT:", JSON.stringify(raw, null, 2));
+    break; // stop after first item
+    // ⭐⭐ END DEBUG PRINT ⭐⭐
+
+
     const p = normalizeProduct(raw, "in");
     if (p) {
       console.log("Saving:", p.id);
       await saveProduct(p);
     }
   }
+
+  break; // only run for first keyword for debugging
 }
