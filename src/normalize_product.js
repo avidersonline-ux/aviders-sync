@@ -11,16 +11,34 @@ export function normalizeProduct(raw, region = "in") {
       : raw.price || 0);
 
   // ------------------------------
-  // MRP (Correct for your JSON)
+  // MRP (WORKS FOR YOUR RAW JSON)
   // ------------------------------
-  const mrp =
-    raw.extracted_old_price ||
+  let mrp =
+    raw.extracted_old_price ||        // BEST SOURCE (your RAW has this)
+    raw.old_price_extracted ||        // alternate name SerpAPI uses
     (typeof raw.old_price === "string"
       ? parseInt(raw.old_price.replace(/[^0-9]/g, "")) || 0
       : 0);
 
   // ------------------------------
-  // CATEGORY (Smart Guess)
+  // REVIEWS (WORKS FOR YOUR RAW JSON)
+  // ------------------------------
+  const reviews =
+    raw.reviews ||
+    raw.reviews_count ||
+    raw.total_reviews ||
+    0;
+
+  // ------------------------------
+  // RATING
+  // ------------------------------
+  const rating =
+    raw.rating ||
+    raw.stars ||
+    0;
+
+  // ------------------------------
+  // CATEGORY (Smart auto)
   // ------------------------------
   let category = "general";
   const t = raw.title?.toLowerCase() || "";
@@ -35,7 +53,7 @@ export function normalizeProduct(raw, region = "in") {
   // BRAND DETECTION
   // ------------------------------
   let brand = raw.brand || "";
-
+  
   if (!brand) {
     if (t.includes("iphone") || t.includes("apple") || t.includes("macbook"))
       brand = "Apple";
@@ -43,20 +61,6 @@ export function normalizeProduct(raw, region = "in") {
     else if (t.includes("redmi") || t.includes("xiaomi")) brand = "Xiaomi";
     else if (t.includes("boat")) brand = "boAt";
   }
-
-  // ------------------------------
-  // RATING + REVIEWS (all possible keys)
-  // ------------------------------
-  const rating =
-    raw.rating ||
-    raw.stars ||
-    0;
-
-  const reviews =
-    raw.reviews ||
-    raw.reviews_count ||
-    raw.total_reviews ||
-    0;
 
   // ------------------------------
   // IMAGES
@@ -70,22 +74,12 @@ export function normalizeProduct(raw, region = "in") {
   const images = raw.images?.slice(0, 5) || (image ? [image] : []);
 
   // ------------------------------
-  // STOCK
+  // STOCK STATUS
   // ------------------------------
-  const stock = "in_stock"; // Search results rarely show unavailable
+  const stock = "in_stock";
 
   // ------------------------------
-  // VARIANTS
-  // ------------------------------
-  const variants = raw.variants || {};
-
-  // ------------------------------
-  // DELIVERY INFO
-  // ------------------------------
-  const delivery = raw.delivery || [];
-
-  // ------------------------------
-  // AFFILIATE URL
+  // AFFILIATE LINK
   // ------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
 
@@ -109,13 +103,10 @@ export function normalizeProduct(raw, region = "in") {
     category,
     rating,
     reviews,
-    bought_last_month: raw.bought_last_month || "",
     stock,
 
     image,
     images,
-    variants,
-    delivery,
 
     source: region === "us" ? "amazon_us" : "amazon_in",
     affiliateUrl,
