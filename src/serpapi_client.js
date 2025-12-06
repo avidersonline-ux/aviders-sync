@@ -6,8 +6,7 @@ const API_KEY = process.env.SERPAPI_KEY;
 
 export async function searchAmazon(keyword, region = "in") {
   try {
-    const domain =
-      region === "us" ? "amazon.com" : "amazon.in";
+    const domain = region === "us" ? "amazon.com" : "amazon.in";
 
     const url = "https://serpapi.com/search.json";
 
@@ -16,15 +15,26 @@ export async function searchAmazon(keyword, region = "in") {
       amazon_domain: domain,
       q: keyword,
       api_key: API_KEY,
+      gl: region === "us" ? "us" : "in",   // geo location
+      hl: region === "us" ? "en" : "en",   // language
     };
 
     const response = await axios.get(url, { params });
 
-    // Only return useful product objects
+    // Return only the relevant product array
     return response.data?.organic_results || [];
 
   } catch (error) {
-    console.error("SerpAPI error:", error.message);
+    console.log("--------------- SERPAPI ERROR ---------------");
+
+    if (error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Data:", error.response.data);
+    } else {
+      console.error("Message:", error.message);
+    }
+
+    console.log("------------------------------------------------");
     return [];
   }
 }
