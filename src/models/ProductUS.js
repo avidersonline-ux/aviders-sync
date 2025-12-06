@@ -32,4 +32,5 @@ const productUSSchema = new mongoose.Schema(
   { collection: "products_us" }
 );
 
-export const ProductUS = mongoose.model("ProductUS", productUSSchema);
+const ProductUS = mongoose.model("ProductUS", productUSSchema);
+export default ProductUS;
