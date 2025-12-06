@@ -12,11 +12,11 @@ export function normalizeProduct(raw, region = "in") {
   else if (typeof raw.price === "number") price = raw.price;
 
   // ------------------------------
-  // MRP (REAL MRP)
+  // MRP (COMPARE PRICE)
   // ------------------------------
   let mrp = 0;
 
-  if (raw.extracted_old_price) mrp = raw.extracted_old_price; // BEST FIELD
+  if (raw.extracted_old_price) mrp = raw.extracted_old_price;
   else if (raw.old_price)
     mrp = parseInt(raw.old_price.replace(/[^0-9]/g, "")) || 0;
   else if (raw.original_price_extracted) mrp = raw.original_price_extracted;
@@ -37,7 +37,7 @@ export function normalizeProduct(raw, region = "in") {
       : "in_stock";
 
   // ------------------------------
-  // IMAGES
+  // PRIMARY IMAGE
   // ------------------------------
   const primaryImage =
     raw.thumbnail ||
@@ -45,7 +45,12 @@ export function normalizeProduct(raw, region = "in") {
     (raw.images ? raw.images[0] : null) ||
     null;
 
-  const images = raw.images?.slice(0, 5) || (primaryImage ? [primaryImage] : []);
+  const images =
+    raw.images?.length > 0
+      ? raw.images.slice(0, 5)
+      : primaryImage
+      ? [primaryImage]
+      : [];
 
   // ------------------------------
   // CATEGORY
@@ -70,7 +75,7 @@ export function normalizeProduct(raw, region = "in") {
   affiliateUrl += affiliateUrl.includes("?") ? `&tag=${tag}` : `?tag=${tag}`;
 
   // ------------------------------
-  // RETURN FINAL PRODUCT STRUCTURE
+  // RETURN FINAL PRODUCT
   // ------------------------------
   return {
     id: raw.asin,
@@ -95,9 +100,6 @@ export function normalizeProduct(raw, region = "in") {
     source: region === "us" ? "amazon_us" : "amazon_in",
     affiliateUrl,
 
-    updated_at: new Date()
-
-    /** STORE EVERYTHING */
-  raw
+    updated_at: new Date(),
   };
 }
