@@ -12,24 +12,17 @@ const keywords = JSON.parse(fs.readFileSync("./src/keywords_in.json", "utf-8"));
 await connectDB();
 
 for (let word of keywords) {
-  console.log("Searching:", word);
+  console.log("Searching IN:", word);
 
   const results = await searchAmazon(word, "in");
 
   for (let raw of results) {
-
-    // ⭐⭐ ADD THIS DEBUG PRINT ⭐⭐
-    console.log("RAW PRODUCT:", JSON.stringify(raw, null, 2));
-    break; // stop after first item
-    // ⭐⭐ END DEBUG PRINT ⭐⭐
-
-
     const p = normalizeProduct(raw, "in");
     if (p) {
-      console.log("Saving:", p.id);
+      console.log("Saving IN:", p.id);
       await saveProduct(p);
     }
   }
-
-  break; // only run for first keyword for debugging
 }
+
+console.log("DONE: India batch sync completed");
