@@ -1,29 +1,36 @@
 import mongoose from "mongoose";
 
-const ProductINSchema = new mongoose.Schema(
+const productINSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true, index: true, unique: true },
+
     title: String,
     brand: String,
+
     price: Number,
     mrp: Number,
     currency: String,
+
     category: String,
     stock: String,
+
     rating: Number,
     reviews: Number,
+
     image: String,
     images: [String],
+
     bought_last_month: String,
     sponsored: Boolean,
     delivery: [String],
+
     source: String,
     affiliateUrl: String,
-    updated_at: Date,
+
+    updated_at: Date
   },
   { collection: "products_in" }
 );
 
-export default mongoose.models.ProductIN ||
-  mongoose.model("ProductIN", ProductINSchema);
-
+const ProductIN = mongoose.model("ProductIN", productINSchema);
+export default ProductIN;
