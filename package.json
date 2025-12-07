@@ -5,7 +5,8 @@
   "scripts": {
     "start": "echo 'Sync tool is idle. Use npm run run:in or npm run run:us manually.'",
     "run:in": "node src/run_batch_in.js",
-    "run:us": "node src/run_batch_us.js"
+    "run:us": "node src/run_batch_us.js",
+    "worker": "node src/queue_worker.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
