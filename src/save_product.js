@@ -18,7 +18,7 @@ export async function saveProduct(product, region = "in") {
     const categoryName = product.category?.trim() || "general";
 
     // Ensure category exists for this region
-    await ensureCategoryExists(categoryName, region);
+    await ensureCategoryExists(product.category, region);
 
     // Check existing product
     const existing = await Model.findOne({ id: product.id });
