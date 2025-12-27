@@ -26,4 +26,5 @@ jobs:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           NODE_ENV: production
-        run: npm run sync:in
+        run: npm run run:in
+
