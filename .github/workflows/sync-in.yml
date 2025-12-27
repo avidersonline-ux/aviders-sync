@@ -1,0 +1,29 @@
+name: Sync India Products
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours
+  workflow_dispatch:        # manual run button
+
+jobs:
+  sync-in:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run IN sync
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          NODE_ENV: production
+        run: npm run sync:in
