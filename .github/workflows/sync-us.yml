@@ -3,11 +3,12 @@ name: Sync US Products
 on:
   schedule:
     - cron: "30 */6 * * *"   # every 6 hours
-  workflow_dispatch:        # manual run button
+  workflow_dispatch:
 
 jobs:
-  sync-in:
+  sync-us:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repo
@@ -17,11 +18,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run IN sync
+      - name: Run US sync
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
