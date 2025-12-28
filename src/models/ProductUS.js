@@ -12,6 +12,18 @@ const productUSSchema = new mongoose.Schema(
     currency: String,
 
     category: String,
+
+    // 🔹 NEW: keyword used to fetch this product (iphone, laptop, earbuds…)
+    keywordTag: {
+      type: String,
+      index: true,
+    },
+
+    // 🔹 NEW: curated category shown in shop (editable later)
+    shopCategory: {
+      type: String,
+      index: true,
+    },
     stock: String,
 
     rating: Number,
