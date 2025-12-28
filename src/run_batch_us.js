@@ -16,46 +16,66 @@ const keywords = JSON.parse(
   fs.readFileSync("./src/keywords_us.json", "utf-8")
 );
 
-await connectDB();
+async function run() {
+  console.log("🚀 Starting US batch sync...");
 
-// Search index collection
-const searchIndex = mongoose.connection.collection("search_index");
+  await connectDB();
 
-for (let word of keywords) {
-  console.log(`🔍 Searching US: ${word}`);
+  // Search index collection
+  const searchIndex = mongoose.connection.collection("search_index");
 
-  // RULE: Skip if indexed in last 6 hours
-  const lastRun = await searchIndex.findOne({
-    keyword: word,
-    region: "US",
-  });
+  for (const word of keywords) {
+    console.log(`🔍 Searching US: ${word}`);
 
-  if (lastRun && Date.now() - lastRun.last_run < 6 * 60 * 60 * 1000) {
-    console.log(`⏩ SKIPPED (indexed recently): ${word}`);
-    continue;
-  }
+    // ✅ FIX: region must be lowercase "us"
+    const lastRun = await searchIndex.findOne({
+      keyword: word,
+      region: "us",
+    });
 
-  // Update timestamp
-  await searchIndex.updateOne(
-    { keyword: word, region: "US" },
-    { $set: { last_run: Date.now() } },
-    { upsert: true }
-  );
+    // Skip if indexed in last 6 hours
+    if (lastRun && Date.now() - lastRun.last_run < 6 * 60 * 60 * 1000) {
+      console.log(`⏩ SKIPPED (indexed recently): ${word}`);
+      continue;
+    }
 
-  // Fetch products
-  const results = await searchAmazon(word, "us");
+    // Update timestamp
+    await searchIndex.updateOne(
+      { keyword: word, region: "us" },
+      { $set: { last_run: Date.now() } },
+      { upsert: true }
+    );
 
-  if (!results || results.length === 0) {
-    console.log(`⚠ No results found for keyword: ${word}`);
-    continue;
-  }
+    // Fetch products from SerpAPI
+    const results = await searchAmazon(word, "us");
 
-  for (let raw of results) {
-    const product = normalizeProduct(raw, "us");
+    if (!results || results.length === 0) {
+      console.log(`⚠ No results found for keyword: ${word}`);
+      continue;
+    }
 
-    if (product) {
-      console.log("💾 Saving US:", product.id);
-      await saveProduct(product, "us");
+    for (const raw of results) {
+      const product = normalizeProduct(raw, "us");
+
+      if (product) {
+        console.log("💾 Saving US:", product.id);
+        await saveProduct(product, "us");
+      }
     }
   }
+
+  console.log("✅ US batch sync completed");
+
+  // 🔴 CRITICAL: close DB & exit
+  await mongoose.connection.close();
+  process.exit(0);
 }
+
+// Run safely
+run().catch(async (err) => {
+  console.error("❌ US batch failed:", err);
+  try {
+    await mongoose.connection.close();
+  } catch {}
+  process.exit(1);
+});
