@@ -1,33 +1,33 @@
-// ------------------------------
-// Category Cleaner (local function)
-// ------------------------------
+// -----------------------------------------------------
+// Category Cleaner (heuristic – safe, overridable later)
+// -----------------------------------------------------
 function cleanCategory(name = "", title = "") {
   if (!name) name = "general";
 
   let c = name.toLowerCase().trim();
-
-  // Basic keyword rules
   const t = title?.toLowerCase() || "";
 
+  // Simple keyword heuristics (can grow later)
   if (t.includes("iphone")) c = "smartphones";
-  if (t.includes("macbook")) c = "laptops";
-  if (t.includes("watch")) c = "watches";
-  if (t.includes("earbud") || t.includes("buds")) c = "earbuds";
+  else if (t.includes("macbook")) c = "laptops";
+  else if (t.includes("laptop")) c = "laptops";
+  else if (t.includes("watch")) c = "watches";
+  else if (t.includes("earbud") || t.includes("buds")) c = "earbuds";
+  else if (t.includes("headphone")) c = "headphones";
 
-  return c;
+  return c || "general";
 }
 
-// ------------------------------
+// -----------------------------------------------------
 // MAIN NORMALIZER
-// ------------------------------
-export function normalizeProduct(raw, region = "in") {
+// -----------------------------------------------------
+export function normalizeProduct(raw, region = "in", keyword = "") {
   if (!raw || !raw.asin) return null;
 
-  // ------------------------------
+  // ---------------------------------------------------
   // PRICE
-  // ------------------------------
+  // ---------------------------------------------------
   let price = 0;
-
   if (raw.extracted_price) {
     price = raw.extracted_price;
   } else if (typeof raw.price === "string") {
@@ -36,11 +36,10 @@ export function normalizeProduct(raw, region = "in") {
     price = raw.price;
   }
 
-  // ------------------------------
+  // ---------------------------------------------------
   // MRP
-  // ------------------------------
+  // ---------------------------------------------------
   let mrp = 0;
-
   if (raw.extracted_old_price) {
     mrp = raw.extracted_old_price;
   } else if (raw.old_price) {
@@ -51,20 +50,20 @@ export function normalizeProduct(raw, region = "in") {
     mrp = raw.list_price_extracted;
   }
 
-  // ------------------------------
+  // ---------------------------------------------------
   // RATING & REVIEWS
-  // ------------------------------
+  // ---------------------------------------------------
   const rating = typeof raw.rating === "number" ? raw.rating : 0;
-
   const reviews =
-    typeof raw.reviews === "number" ||
-    typeof raw.reviews_count === "number"
-      ? raw.reviews || raw.reviews_count
+    typeof raw.reviews === "number"
+      ? raw.reviews
+      : typeof raw.reviews_count === "number"
+      ? raw.reviews_count
       : 0;
 
-  // ------------------------------
+  // ---------------------------------------------------
   // STOCK
-  // ------------------------------
+  // ---------------------------------------------------
   let stock = "in_stock";
   if (
     raw.availability &&
@@ -73,9 +72,9 @@ export function normalizeProduct(raw, region = "in") {
     stock = "out_of_stock";
   }
 
-  // ------------------------------
+  // ---------------------------------------------------
   // IMAGES
-  // ------------------------------
+  // ---------------------------------------------------
   const primaryImage =
     raw.thumbnail ||
     raw.image ||
@@ -89,22 +88,29 @@ export function normalizeProduct(raw, region = "in") {
       ? [primaryImage]
       : [];
 
-  // ------------------------------
-  // CATEGORY DETECTION
-  // ------------------------------
+  // ---------------------------------------------------
+  // CATEGORY (derived, NOT final truth)
+  // ---------------------------------------------------
   let rawCategory = "general";
-
   if (raw.category) {
     rawCategory = raw.category;
   } else if (raw.category_path?.length > 0) {
-    rawCategory = raw.category_path[0].name || "general";
+    rawCategory = raw.category_path[0]?.name || "general";
   }
 
   const category = cleanCategory(rawCategory, raw.title);
 
-  // ------------------------------
+  // ---------------------------------------------------
+  // 🔑 KEYWORD INTENT (THIS IS THE IMPORTANT PART)
+  // ---------------------------------------------------
+  const keywordTag = keyword ? keyword.toLowerCase().trim() : null;
+
+  // This becomes your SHOP category (editable later)
+  const shopCategory = keywordTag || category;
+
+  // ---------------------------------------------------
   // AFFILIATE URL
-  // ------------------------------
+  // ---------------------------------------------------
   const tag = region === "us" ? "aviders-20" : "aviders-21";
 
   let affiliateUrl =
@@ -117,18 +123,24 @@ export function normalizeProduct(raw, region = "in") {
     ? `&tag=${tag}`
     : `?tag=${tag}`;
 
-  // ------------------------------
-  // FINAL STRUCTURED PRODUCT
-  // ------------------------------
+  // ---------------------------------------------------
+  // FINAL STRUCTURED PRODUCT (SINGLE SOURCE OF TRUTH)
+  // ---------------------------------------------------
   return {
     id: raw.asin,
+
     title: raw.title || "",
     brand: raw.brand || "",
+
     price,
     mrp,
     currency: region === "us" ? "USD" : "INR",
 
-    category,
+    // 🔹 categories
+    category,          // derived (auto)
+    shopCategory,      // intent-based (YOU control this later)
+    keywordTag,        // why this product exists in DB
+
     stock,
     rating,
     reviews,
