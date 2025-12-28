@@ -10,8 +10,21 @@ const productINSchema = new mongoose.Schema(
     price: Number,
     mrp: Number,
     currency: String,
-
+    
     category: String,
+
+    // 🔹 NEW: keyword used to fetch this product (iphone, laptop, earbuds…)
+    keywordTag: {
+      type: String,
+      index: true,
+    },
+
+    // 🔹 NEW: curated category shown in shop (editable later)
+    shopCategory: {
+      type: String,
+      index: true,
+    },
+
     stock: String,
 
     rating: Number,
@@ -27,10 +40,11 @@ const productINSchema = new mongoose.Schema(
     source: String,
     affiliateUrl: String,
 
-    updated_at: Date
+    updated_at: Date,
   },
   { collection: "products_in" }
 );
 
 const ProductIN = mongoose.model("ProductIN", productINSchema);
 export default ProductIN;
+
