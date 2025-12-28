@@ -55,7 +55,7 @@ async function run() {
     }
 
     for (const raw of results) {
-      const product = normalizeProduct(raw, "us");
+      const product = normalizeProduct(raw, "in", word);
 
       if (product) {
         console.log("💾 Saving US:", product.id);
