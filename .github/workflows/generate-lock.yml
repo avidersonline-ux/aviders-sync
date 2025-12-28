@@ -3,6 +3,9 @@ name: Generate package-lock
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write   # ✅ THIS IS THE FIX
+
 jobs:
   generate-lock:
     runs-on: ubuntu-latest
