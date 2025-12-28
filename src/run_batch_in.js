@@ -16,46 +16,66 @@ const keywords = JSON.parse(
   fs.readFileSync("./src/keywords_in.json", "utf-8")
 );
 
-await connectDB();
+async function run() {
+  console.log("🚀 Starting IN batch sync...");
 
-// Search index collection (prevents repeated API calls)
-const searchIndex = mongoose.connection.collection("search_index");
+  await connectDB();
 
-for (let word of keywords) {
-  console.log(`🔍 Searching IN: ${word}`);
+  // Search index collection (prevents repeated API calls)
+  const searchIndex = mongoose.connection.collection("search_index");
 
-  // RULE: Skip if already indexed in last 6 hours
-  const lastRun = await searchIndex.findOne({
-    keyword: word,
-    region: "IN",
-  });
+  for (const word of keywords) {
+    console.log(`🔍 Searching IN: ${word}`);
 
-  if (lastRun && Date.now() - lastRun.last_run < 6 * 60 * 60 * 1000) {
-    console.log(`⏩ SKIPPED (indexed recently): ${word}`);
-    continue;
-  }
+    // ✅ FIX: region must be lowercase "in"
+    const lastRun = await searchIndex.findOne({
+      keyword: word,
+      region: "in",
+    });
 
-  // Update timestamp
-  await searchIndex.updateOne(
-    { keyword: word, region: "IN" },
-    { $set: { last_run: Date.now() } },
-    { upsert: true }
-  );
+    // Skip if indexed in last 6 hours
+    if (lastRun && Date.now() - lastRun.last_run < 6 * 60 * 60 * 1000) {
+      console.log(`⏩ SKIPPED (indexed recently): ${word}`);
+      continue;
+    }
 
-  // Fetch from SerpAPI
-  const results = await searchAmazon(word, "in");
+    // Update timestamp
+    await searchIndex.updateOne(
+      { keyword: word, region: "in" },
+      { $set: { last_run: Date.now() } },
+      { upsert: true }
+    );
 
-  if (!results || results.length === 0) {
-    console.log(`⚠ No results found for keyword: ${word}`);
-    continue;
-  }
+    // Fetch from SerpAPI
+    const results = await searchAmazon(word, "in");
 
-  for (let raw of results) {
-    const product = normalizeProduct(raw, "in");
+    if (!results || results.length === 0) {
+      console.log(`⚠ No results found for keyword: ${word}`);
+      continue;
+    }
 
-    if (product) {
-      console.log("💾 Saving IN:", product.id);
-      await saveProduct(product, "in");
+    for (const raw of results) {
+      const product = normalizeProduct(raw, "in");
+
+      if (product) {
+        console.log("💾 Saving IN:", product.id);
+        await saveProduct(product, "in");
+      }
     }
   }
+
+  console.log("✅ IN batch sync completed");
+
+  // 🔴 CRITICAL: Close DB & exit
+  await mongoose.connection.close();
+  process.exit(0);
 }
+
+// Run safely
+run().catch(async (err) => {
+  console.error("❌ Batch failed:", err);
+  try {
+    await mongoose.connection.close();
+  } catch {}
+  process.exit(1);
+});
