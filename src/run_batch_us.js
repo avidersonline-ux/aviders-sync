@@ -7,11 +7,13 @@ import fs from "fs";
 import mongoose from "mongoose";
 
 import { connectDB } from "./mongo_client.js";
-import { searchAmazon } from "./serpapi_client.js";
+// ✅ CHANGE 1: Use the smart hybrid service
+import { fetchProducts } from "./product_service.js";
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
 // Load US keywords
+// Ensure src/keywords_us.json exists!
 const keywords = JSON.parse(
   fs.readFileSync("./src/keywords_us.json", "utf-8")
 );
@@ -27,7 +29,7 @@ async function run() {
   for (const word of keywords) {
     console.log(`🔍 Searching US: ${word}`);
 
-    // ✅ FIX: region must be lowercase "us"
+    // ✅ Region is "us"
     const lastRun = await searchIndex.findOne({
       keyword: word,
       region: "us",
@@ -46,8 +48,8 @@ async function run() {
       { upsert: true }
     );
 
-    // Fetch products from SerpAPI
-    const results = await searchAmazon(word, "us");
+    // ✅ CHANGE 2: Fetch using the smart manager (Amazon First -> SerpApi Fallback)
+    const results = await fetchProducts(word, "us");
 
     if (!results || results.length === 0) {
       console.log(`⚠ No results found for keyword: ${word}`);
@@ -55,7 +57,8 @@ async function run() {
     }
 
     for (const raw of results) {
-      const product = normalizeProduct(raw, "in", word);
+      // ✅ CHANGE 3: Fixed region to "us" (was "in" before)
+      const product = normalizeProduct(raw, "us", word);
 
       if (product) {
         console.log("💾 Saving US:", product.id);
