@@ -7,11 +7,13 @@ import fs from "fs";
 import mongoose from "mongoose";
 
 import { connectDB } from "./mongo_client.js";
-import { fetchProducts } from "./product_service.js";
+import { fetchProducts } from "./product_service.js"; // ✅ Updated import
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
 // Load India keywords
+// Make sure src/keywords_in.json exists and is a valid JSON array ["a", "b"]
+// If you want to hardcode them, replace this block with: const keywords = ["iphone", "macbook"];
 const keywords = JSON.parse(
   fs.readFileSync("./src/keywords_in.json", "utf-8")
 );
@@ -24,7 +26,7 @@ async function run() {
   // Search index collection (prevents repeated API calls)
   const searchIndex = mongoose.connection.collection("search_index");
 
-  for (const word of keywords) {
+  for (const word of keywords) { // <--- Loop variable is "word"
     console.log(`🔍 Searching IN: ${word}`);
 
     // ✅ FIX: region must be lowercase "in"
@@ -46,8 +48,8 @@ async function run() {
       { upsert: true }
     );
 
-    // Fetch from SerpAPI now amz
-   const results = await fetchProducts(item, "in");
+    // ✅ FIXED: Changed "item" to "word" to match the loop variable
+    const results = await fetchProducts(word, "in");
 
     if (!results || results.length === 0) {
       console.log(`⚠ No results found for keyword: ${word}`);
