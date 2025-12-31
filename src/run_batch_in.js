@@ -7,7 +7,7 @@ import fs from "fs";
 import mongoose from "mongoose";
 
 import { connectDB } from "./mongo_client.js";
-import { searchAmazon } from "./serpapi_client.js";
+import { fetchProducts } from "./product_service.js";
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
@@ -46,8 +46,8 @@ async function run() {
       { upsert: true }
     );
 
-    // Fetch from SerpAPI
-    const results = await searchAmazon(word, "in");
+    // Fetch from SerpAPI now amz
+   const results = await fetchProducts(keyword, "in");
 
     if (!results || results.length === 0) {
       console.log(`⚠ No results found for keyword: ${word}`);
