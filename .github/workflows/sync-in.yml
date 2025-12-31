@@ -27,5 +27,8 @@ jobs:
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          AMAZON_ACCESS_KEY: ${{ secrets.AMAZON_ACCESS_KEY }}
+          AMAZON_SECRET_KEY: ${{ secrets.AMAZON_SECRET_KEY }}
+          AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG_IN }}
           NODE_ENV: production
         run: npm run run:in
