@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { connectDB } from "./mongo_client.js";
-import { searchAmazon } from "./serpapi_client.js";
+// ✅ CHANGE 1: Import the new Manager Service instead of SerpApi directly
+import { fetchProducts } from "./product_service.js"; 
 import { normalizeProduct } from "./normalize_product.js";
 import { saveProduct } from "./save_product.js";
 
@@ -38,11 +39,11 @@ setInterval(async () => {
     { upsert: true }
   );
 
-  // Fetch from SerpAPI
-  const results = await searchAmazon(keyword, region);
+  // ✅ CHANGE 2: Call the smart fetcher (Tries Amazon first, then SerpApi)
+  const results = await fetchProducts(keyword, region);
 
   if (!results || results.length === 0) {
-    console.log("⚠ No results from SerpAPI");
+    console.log("⚠ No results found (Amazon/SerpAPI)");
     return;
   }
 
