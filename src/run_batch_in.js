@@ -47,7 +47,7 @@ async function run() {
     );
 
     // Fetch from SerpAPI now amz
-   const results = await fetchProducts(keyword, "in");
+   const results = await fetchProducts(item, "in");
 
     if (!results || results.length === 0) {
       console.log(`⚠ No results found for keyword: ${word}`);
