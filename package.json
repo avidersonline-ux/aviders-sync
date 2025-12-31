@@ -9,6 +9,7 @@
     "run:us": "node src/run_batch_us.js"
   },
   "dependencies": {
+    "amazon-paapi": "^1.0.7",
     "axios": "^1.6.0",
     "dotenv": "^16.4.5",
     "mongoose": "^7.6.1"
