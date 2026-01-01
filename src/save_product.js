@@ -1,8 +1,9 @@
-// src/save_product.js
+/ src/save_product.js
 
 import mongoose from "mongoose";
 import ProductIN from "./models/ProductIN.js";
 import ProductUS from "./models/ProductUS.js";
+import PriceAlert from "./models/Alert.js"; // 1. Import Alert model
 import { ensureCategoryExists } from "./category_manager.js";
 
 /**
@@ -53,7 +54,7 @@ export async function saveProduct(product, region = "in") {
 
     console.log(`✅ Updated product (${region}):`, product.id);
 
-    // Record price history when price changes
+    // Record price history and check for ALERTS when price changes
     if (!existing || existing.price !== product.price) {
       await mongoose.connection.collection("price_history").insertOne({
         asin: product.id,
@@ -65,9 +66,36 @@ export async function saveProduct(product, region = "in") {
       });
 
       console.log(`📈 Price history added: ${product.id}`);
+
+      // 2. CHECK FOR PRICE ALERTS
+      await checkAndProcessAlerts(product.id, product.price, region);
     }
 
   } catch (err) {
     console.error("❌ Error in saveProduct:", err.message);
+  }
+}
+
+/**
+ * Checks if any users have set an alert for this price drop
+ */
+async function checkAndProcessAlerts(asin, currentPrice, region) {
+  try {
+    // Find active alerts for this product where targetPrice >= currentPrice
+    const alerts = await PriceAlert.find({
+      asin: asin,
+      region: region,
+      targetPrice: { $gte: currentPrice },
+      active: true
+    });
+
+    for (const alert of alerts) {
+      console.log(`🔔 ALERT TRIGGERED: Product ${asin} in ${region} dropped to ₹${currentPrice}. Notifying ${alert.email}`);
+      
+      // TODO: Integration with Firebase (FCM) or SendGrid (Email)
+      // This is where you would send the actual notification.
+    }
+  } catch (err) {
+    console.error("❌ Error checking alerts:", err.message);
   }
 }
