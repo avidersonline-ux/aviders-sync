@@ -1,4 +1,4 @@
-/ src/save_product.js
+// src/save_product.js
 
 import mongoose from "mongoose";
 import ProductIN from "./models/ProductIN.js";
