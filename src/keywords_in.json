@@ -36,8 +36,7 @@
   "diapers",
   "tea powder",
   "sanitary pads",
-  "napkin"
-    // kitchen essentials
+  "napkin",
   "spices",
   "masala",
   "turmeric powder",
@@ -45,7 +44,6 @@
   "garam masala",
   "cumin seeds",
   "mustard seeds",
-    // home care
   "detergent powder",
   "detergent liquid",
   "dishwash liquid",
@@ -54,5 +52,5 @@
   "phenyl",
   "toilet cleaner",
   "cleaning wipes",
-  "garbage bags",
+  "garbage bags"
 ]
