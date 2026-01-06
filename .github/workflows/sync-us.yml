@@ -27,6 +27,7 @@ jobs:
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          SCRAPINGDOG_API_KEY: ${{ secrets.SCRAPINGDOG_API_KEY }}  # ← ADD THIS
           AMAZON_ACCESS_KEY: ${{ secrets.AMAZON_ACCESS_KEY }}
           AMAZON_SECRET_KEY: ${{ secrets.AMAZON_SECRET_KEY }}
           AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG_US }}
