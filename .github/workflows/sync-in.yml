@@ -8,7 +8,7 @@ on:
 jobs:
   sync-in:
     runs-on: ubuntu-latest
-    timeout-minutes: 20   # 🔐 safety guard
+    timeout-minutes: 59   # 🔐 safety guard
 
     steps:
       - name: Checkout repo
