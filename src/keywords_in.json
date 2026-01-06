@@ -1,5 +1,5 @@
 [
-  // Electronics & Gadgets
+ 
   "iphone 15",
   "samsung s24",
   "motorola phone",
@@ -30,8 +30,6 @@
   "gaming console",
   "bluetooth speaker",
   "power bank",
-  
-  // Fashion & Clothing
   "mens shoes",
   "womens shoes",
   "running shoes",
@@ -52,8 +50,6 @@
   "handbag",
   "backpack",
   "wallet",
-  
-  // Beauty & Personal Care
   "lipstick",
   "eyeliner",
   "foundation",
@@ -74,8 +70,6 @@
   "napkins",
   "diapers",
   "baby products",
-  
-  // Home & Kitchen
   "home decor",
   "wall clock",
   "bed sheet",
@@ -96,8 +90,6 @@
   "storage containers",
   "water bottle",
   "thermos flask",
-  
-  // Grocery & Food
   "atta",
   "wheat flour",
   "rice",
@@ -118,8 +110,6 @@
   "instant noodles",
   "biscuits",
   "chocolates",
-  
-  // Cleaning & Household
   "detergent powder",
   "detergent liquid",
   "dish wash liquid",
@@ -135,8 +125,6 @@
   "phenyl",
   "hand wash",
   "sanitizer",
-  
-  // Toys & Gifts
   "toys for kids",
   "teddy bear",
   "board games",
@@ -150,8 +138,6 @@
   "incense sticks",
   "diya",
   "idol",
-  
-  // Garden & Outdoor
   "garden tools",
   "watering can",
   "plants",
@@ -160,8 +146,6 @@
   "gardening gloves",
   "seeds",
   "fertilizer",
-  
-  // Health & Wellness
   "protein powder",
   "vitamin supplements",
   "health drink",
@@ -172,8 +156,6 @@
   "blood pressure monitor",
   "thermometer",
   "first aid kit",
-  
-  // Books & Stationery
   "books",
   "notebook",
   "pen",
@@ -182,43 +164,31 @@
   "sharpener",
   "school bag",
   "lunch box",
-  
-  // Automotive
   "car accessories",
   "bike helmet",
   "tire pressure gauge",
   "car perfume",
   "mobile holder",
-  
-  // Pet Supplies
   "pet food",
   "dog leash",
   "cat litter",
   "bird cage",
   "fish food",
-  
-  // Office Supplies
   "printer",
   "mouse",
   "keyboard",
   "webcam",
   "headset",
-  
-  // Sports & Fitness
   "cricket bat",
   "football",
   "badminton racket",
   "tennis ball",
   "swimming goggles",
-  
-  // Test Cases (Edge Cases)
   "iphone 15 pro max 256gb",
   "samsung galaxy s24 ultra 5g",
   "apple macbook air m3 chip 2024",
   "nothing phone 2a 5g",
   "oneplus nord ce 4",
-  
-  // Single Word Tests
   "phone",
   "laptop",
   "shoes",
@@ -229,8 +199,6 @@
   "fan",
   "lamp",
   "chair",
-  
-  // Multiple Word Tests
   "wireless bluetooth headphones noise cancellation",
   "non stick cookware set 10 pieces",
   "cotton bedsheet double size floral print",
